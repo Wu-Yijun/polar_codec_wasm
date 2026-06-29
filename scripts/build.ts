@@ -26,7 +26,7 @@ build({
   format: "iife",
   globalName: 'polar_codec',
   platform: 'browser',
-  // minify: true,
+  minify: true,
   define: { 'import.meta': "{/* import.meta */}" },
   footer: { js: 'window.PolarCodec = polar_codec.PolarCodec;' }
 });

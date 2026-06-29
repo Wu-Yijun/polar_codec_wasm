@@ -46,7 +46,6 @@
   ],
   "scripts": {
     "build": "node ./scripts/build.ts",
-    "tsc": "tsc",
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {

@@ -1,0 +1,76 @@
+name: Publish to npm
+
+# 触发条件：当你真正在 GitHub 上发布一个 Release 时触发
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: whether to publish to npm
+        required: true
+        type: boolean
+        default: false
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+          # allowed-endpoints: >
+          #   azure.archive.ubuntu.com:80
+          #   github.com:443
+          #   api.github.com:443
+          #   release-assets.githubusercontent.com:443
+          #   rustwasm.github.io:443
+          #   crates.io:443
+          #   index.crates.io:443
+          #   static.crates.io:443
+          #   static.rust-lang.org:443
+          #   nodejs.org:443
+          #   registry.npmjs.org:443
+          #   fulcio.sigstore.dev:443
+          #   rekor.sigstore.dev:443
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.5.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          registry-url: "https://registry.npmjs.org"
+          cache: "pnpm"
+          node-version: 26.1.0
+
+      - name: Install dependencies
+        run: |
+          pnpm config set minimumReleaseAge 3000 --global
+          pnpm install --frozen-lockfile
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build package (For testing)
+        run: pnpm run build
+
+      - name: Run tests
+        run: pnpm run test
+
+      - name: Publish package
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' || github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true' }}
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
