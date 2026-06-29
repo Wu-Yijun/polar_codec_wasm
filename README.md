@@ -41,7 +41,7 @@ For native browser environments without bundlers, you can include the IIFE bundl
 
 ```
 
-## ⚡ Quick Start
+## Quick Start
 
 ### 1. Browser Environment (via CDN)
 
@@ -100,7 +100,7 @@ const decodedBits = codec.decode_bit(llr);
 
 ```
 
-## 🛠 API Reference
+## API Reference
 
 ### `new PolarCodec(k, n?, l?, options?)`
 
@@ -145,7 +145,7 @@ const codec = new PolarCodec(96, 128, 4, {
 
 ```
 
-## 🧪 Examples
+## Examples
 
 Runnable demos are located in the `examples/` directory. Clone the repo and run:
 
@@ -164,7 +164,7 @@ npx tsx examples/performance.ts
 
 ```
 
-## 🏗 Architecture & Build
+##  Architecture & Build
 
 ```text
 TypeScript API  ──►  wasm-bindgen  ──►  Rust Codec  ──►  polar_codec crate
