@@ -54,6 +54,7 @@
   "scripts": {
     "build": "node ./scripts/build.ts",
     "examples": "node ./examples/basic.ts && node ./examples/parameters.ts && node ./examples/noise.ts && node ./examples/performance.ts",
+    "test": "pnpm run examples",
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
