@@ -11,13 +11,13 @@
     "browser",
     "node"
   ],
-  "homepage": "https://github.com/Wu-Yijun/polar-codec-wasm#readme",
+  "homepage": "https://github.com/Wu-Yijun/polar_codec_wasm#readme",
   "bugs": {
-    "url": "https://github.com/Wu-Yijun/polar-codec-wasm/issues"
+    "url": "https://github.com/Wu-Yijun/polar_codec_wasm/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Wu-Yijun/polar-codec-wasm.git"
+    "url": "git+https://github.com/Wu-Yijun/polar_codec_wasm.git"
   },
   "license": "MIT",
   "sideEffects": false,
@@ -46,6 +46,7 @@
   ],
   "scripts": {
     "build": "node ./scripts/build.ts",
+    "examples": "node ./examples/basic.ts && node ./examples/parameters.ts && node ./examples/noise.ts && node ./examples/performanec.ts",
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
