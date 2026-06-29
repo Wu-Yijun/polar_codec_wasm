@@ -139,4 +139,5 @@ export class PolarCodec extends Codec {
     }
     this.CRC = _crc;
   }
+  
 }
