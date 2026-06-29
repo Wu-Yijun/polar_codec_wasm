@@ -5,12 +5,16 @@
     "moduleResolution": "nodenext",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "rootDir": "./lib",
+    "rootDir": ".",
     "outDir": "./dist",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "strict": true,
     "types": ["node"]
   },
   "include": [
-    "lib/**/*"
+    "lib/**/*",
+    "examples/**/*",
+    "test/**/*"
   ]
 }

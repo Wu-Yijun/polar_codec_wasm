@@ -1,28 +1,57 @@
+//! # CRC Map
+//!
+//! This module bridges the `crc` crate's CRC algorithms with the WASM
+//! boundary.  It provides:
+//!
+//! - A [`Crc`] enum listing every CRC variant supported by the `crc` crate,
+//!   exported to JavaScript via `wasm-bindgen`.
+//! - An [`Algorithm`] struct that lets users define a fully custom CRC
+//!   algorithm from its canonical parameters.
+//! - A [`to_crc`] helper that converts a `(Crc, Option<Algorithm>)` pair
+//!   into a ready-to-use [`CrcEngine`].
+
 use std::fmt::Debug;
 
 use polar_codec::{IntoCrcEngine, polar_crc::CrcEngine};
 use wasm_bindgen::prelude::wasm_bindgen;
 
+// ---------------------------------------------------------------------------
+// Crc enum -- one variant per CRC algorithm in the `crc` crate
+// ---------------------------------------------------------------------------
+
+/// Enumeration of all CRC algorithms available in the `crc` crate.
+///
+/// Each variant maps 1-to-1 with a constant in the `crc` crate (e.g.
+/// `crc::CRC_16_UMTS`).  The numeric values are explicit to keep the
+/// JavaScript enum stable.
 #[allow(non_camel_case_types)]
 #[wasm_bindgen]
 pub enum Crc {
+    /// No CRC -- pass-through.
     None = 0,
+    /// Marker: use the user-supplied [`Algorithm`] instead of a built-in.
     UserDefined = 1,
+    // -- 3-bit CRCs --
     CRC_3_GSM,
     CRC_3_ROHC,
+    // -- 4-bit CRCs --
     CRC_4_G_704,
     CRC_4_INTERLAKEN,
+    // -- 5-bit CRCs --
     CRC_5_EPC_C1G2,
     CRC_5_G_704,
     CRC_5_USB,
+    // -- 6-bit CRCs --
     CRC_6_CDMA2000_A,
     CRC_6_CDMA2000_B,
     CRC_6_DARC,
     CRC_6_G_704,
     CRC_6_GSM,
+    // -- 7-bit CRCs --
     CRC_7_MMC,
     CRC_7_ROHC,
     CRC_7_UMTS,
+    // -- 8-bit CRCs --
     CRC_8_AUTOSAR,
     CRC_8_BLUETOOTH,
     CRC_8_CDMA2000,
@@ -43,20 +72,27 @@ pub enum Crc {
     CRC_8_SMBUS,
     CRC_8_TECH_3250,
     CRC_8_WCDMA,
+    // -- 10-bit CRCs --
     CRC_10_ATM,
     CRC_10_CDMA2000,
     CRC_10_GSM,
+    // -- 11-bit CRCs --
     CRC_11_FLEXRAY,
     CRC_11_UMTS,
+    // -- 12-bit CRCs --
     CRC_12_CDMA2000,
     CRC_12_DECT,
     CRC_12_GSM,
     CRC_12_UMTS,
+    // -- 13-bit CRCs --
     CRC_13_BBC,
+    // -- 14-bit CRCs --
     CRC_14_DARC,
     CRC_14_GSM,
+    // -- 15-bit CRCs --
     CRC_15_CAN,
     CRC_15_MPT1327,
+    // -- 16-bit CRCs --
     CRC_16_ARC,
     CRC_16_CDMA2000,
     CRC_16_CMS,
@@ -88,8 +124,11 @@ pub enum Crc {
     CRC_16_UMTS,
     CRC_16_USB,
     CRC_16_XMODEM,
+    // -- 17-bit CRCs --
     CRC_17_CAN_FD,
+    // -- 21-bit CRCs --
     CRC_21_CAN_FD,
+    // -- 24-bit CRCs --
     CRC_24_BLE,
     CRC_24_FLEXRAY_A,
     CRC_24_FLEXRAY_B,
@@ -98,8 +137,11 @@ pub enum Crc {
     CRC_24_LTE_B,
     CRC_24_OPENPGP,
     CRC_24_OS_9,
+    // -- 30-bit CRCs --
     CRC_30_CDMA,
+    // -- 31-bit CRCs --
     CRC_31_PHILIPS,
+    // -- 32-bit CRCs --
     CRC_32_AIXM,
     CRC_32_AUTOSAR,
     CRC_32_BASE91_D,
@@ -112,7 +154,9 @@ pub enum Crc {
     CRC_32_MEF,
     CRC_32_MPEG_2,
     CRC_32_XFER,
+    // -- 40-bit CRCs --
     CRC_40_GSM,
+    // -- 64-bit CRCs --
     CRC_64_ECMA_182,
     CRC_64_GO_ISO,
     CRC_64_MS,
@@ -120,58 +164,48 @@ pub enum Crc {
     CRC_64_REDIS,
     CRC_64_WE,
     CRC_64_XZ,
+    // -- 82-bit CRCs --
     CRC_82_DARC,
 }
 
-/// This struct describes a CRC algorithm using the fields specified by the [Catalogue of
-/// parametrised CRC algorithms](https://reveng.sourceforge.io/crc-catalogue/all.htm).
+// ---------------------------------------------------------------------------
+// Algorithm -- user-defined CRC parameters
+// ---------------------------------------------------------------------------
+
+/// Description of a user-defined CRC algorithm.
+///
+/// Fields follow the [Catalogue of parametrised CRC algorithms](https://reveng.sourceforge.io/crc-catalogue/all.htm).
+/// Instances are created from JavaScript via the `new Algorithm(...)` constructor.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[wasm_bindgen]
 pub struct Algorithm {
-    /// The number of bit cells in the linear feedback shift register; the degree of the generator
-    /// polynomial, minus one.
+    /// The number of bit cells in the linear feedback shift register; the
+    /// degree of the generator polynomial, minus one.
     pub width: u8,
-    /// The generator polynomial that sets the feedback tap positions of the shift register. The
-    /// least significant bit corresponds to the inward end of the shift register, and is always
-    /// set. The highest-order term is omitted.
+    /// The generator polynomial that sets the feedback tap positions of the
+    /// shift register.  The least significant bit corresponds to the inward
+    /// end of the shift register and is always set.  The highest-order term
+    /// is omitted.
     pub poly: u128,
-    /// The settings of the bit cells at the start of each calculation, before reading the first
-    /// message bit. The least significant bit corresponds to the inward end of the shift register.
+    /// The settings of the bit cells at the start of each calculation,
+    /// before reading the first message bit.
     pub init: u128,
-    /// If equal to `false`, specifies that the characters of the message are read bit-by-bit, most
-    /// significant bit (MSB) first; if equal to `true`, the characters are read bit-by-bit, least
-    /// significant bit (LSB) first. Each sampled message bit is then XORed with the bit being
-    /// simultaneously shifted out of the register at the most significant end, and the result is
-    /// passed to the feedback taps.
+    /// If `true`, the characters of the message are read bit-by-bit,
+    /// **least** significant bit first.  If `false`, most significant bit
+    /// first.
     pub refin: bool,
-    /// If equal to `false`, specifies that the contents of the register after reading the last
-    /// message bit are unreflected before presentation; if equal to `true`, it specifies that they
-    /// are reflected, character-by-character, before presentation. For the purpose of this
-    /// definition, the reflection is performed by swapping the content of each cell with that of
-    /// the cell an equal distance from the opposite end of the register; the characters of the CRC
-    /// are then true images of parts of the reflected register, the character containing the
-    /// original MSB always appearing first.
+    /// If `true`, the register contents are reflected before the final XOR.
     pub refout: bool,
-    /// The XOR value applied to the contents of the register after the last message bit has been
-    /// read and after the optional reflection. It has the same endianness as the CRC such that its
-    /// true image appears in the characters of the CRC.
+    /// The XOR value applied to the register after the last message bit has
+    /// been read (and after the optional reflection).
     pub xorout: u128,
-    // /// The contents of the register after initialising, reading the UTF-8 string `"123456789"` (as
-    // /// 8-bit characters), optionally reflecting, and applying the final XOR.
-    // pub check: u128,
-    // /// The contents of the register after initialising, reading an error-free codeword and
-    // /// optionally reflecting the register (if [`refout`](Algorithm::refout)=`true`), but not
-    // /// applying the final XOR. This is mathematically equivalent to initialising the register with
-    // /// the xorout parameter, reflecting it as described (if [`refout`](Algorithm::refout)=`true`),
-    // /// reading as many zero bits as there are cells in the register, and reflecting the result (if
-    // /// [`refin`](Algorithm::refin)=`true`). The residue of a crossed-endian model is calculated
-    // /// assuming that the characters of the received CRC are specially reflected before submitting
-    // /// the codeword.
-    // pub residue: u128,
 }
 
 #[wasm_bindgen]
 impl Algorithm {
+    /// Construct a new CRC algorithm descriptor.
+    ///
+    /// This is the JavaScript-callable constructor.
     #[wasm_bindgen(constructor)]
     pub fn new(width: u8, poly: u128, init: u128, refin: bool, refout: bool, xorout: u128) -> Self {
         Self {
@@ -186,10 +220,18 @@ impl Algorithm {
 }
 
 impl Algorithm {
+    /// Convert this descriptor into a `crc::Algorithm<W>` of the appropriate
+    /// width.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any field value does not fit into the target width `W`.
     fn to_crc_algorithm<W: crc::Width + TryFrom<u128>>(&self) -> &'static crc::Algorithm<W>
     where
         <W as TryFrom<u128>>::Error: Debug,
     {
+        // Leak the boxed algorithm so it lives for 'static -- acceptable
+        // because the number of distinct CRC algorithms is tiny.
         Box::leak(Box::new(crc::Algorithm::<W> {
             width: self.width,
             poly: W::try_from(self.poly).unwrap(),
@@ -198,32 +240,47 @@ impl Algorithm {
             refout: self.refout,
             xorout: W::try_from(self.xorout).unwrap(),
             check: W::try_from(0).unwrap(),
-            residue: W::try_from(0).unwrap(), // check: W::try_from(self.check).unwrap(),
-                                              // residue: W::try_from(self.residue).unwrap(),
+            residue: W::try_from(0).unwrap(),
         }))
     }
 }
 
+// ---------------------------------------------------------------------------
+// IntoCrcEngine -- bridge Algorithm -> CrcEngine
+// ---------------------------------------------------------------------------
+
 impl IntoCrcEngine for Algorithm {
+    /// Build a [`CrcEngine`] from this algorithm, selecting the smallest
+    /// native unsigned integer type that can hold the CRC width.
     fn into_engine(self) -> CrcEngine {
         match self.width {
-            1..8 => CrcEngine::W8(crc::Crc::<u8>::new(self.to_crc_algorithm::<u8>())),
-            8..16 => CrcEngine::W16(crc::Crc::<u16>::new(self.to_crc_algorithm::<u16>())),
+            1..8   => CrcEngine::W8(crc::Crc::<u8>::new(self.to_crc_algorithm::<u8>())),
+            8..16  => CrcEngine::W16(crc::Crc::<u16>::new(self.to_crc_algorithm::<u16>())),
             16..32 => CrcEngine::W32(crc::Crc::<u32>::new(self.to_crc_algorithm::<u32>())),
             32..64 => CrcEngine::W64(crc::Crc::<u64>::new(self.to_crc_algorithm::<u64>())),
             64..128 => CrcEngine::W128(crc::Crc::<u128>::new(self.to_crc_algorithm::<u128>())),
-            _ => panic!("Unsupport width {}", self.width),
+            _ => panic!("Unsupported CRC width: {}", self.width),
         }
     }
+
     fn width(&self) -> usize {
         self.width as usize
     }
 }
 
+// ---------------------------------------------------------------------------
+// to_crc -- convert (Crc, Option<Algorithm>) into an optional CrcEngine
+// ---------------------------------------------------------------------------
+
+/// Resolve a [`Crc`] enum variant (and optional [`Algorithm`]) into a usable
+/// [`CrcEngine`].
+///
+/// Returns `None` when `crc == Crc::None`.
 pub fn to_crc(crc: Crc, algo: Option<Algorithm>) -> Option<CrcEngine> {
     match crc {
         Crc::None => None,
         Crc::UserDefined => algo.map(|a| a.into_engine()),
+        // The long arm of match -- one arm per built-in CRC variant.
         Crc::CRC_3_GSM => Some(crc::CRC_3_GSM.into_engine()),
         Crc::CRC_3_ROHC => Some(crc::CRC_3_ROHC.into_engine()),
         Crc::CRC_4_G_704 => Some(crc::CRC_4_G_704.into_engine()),
