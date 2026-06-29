@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-import esbuild from 'esbuild';
+import { build } from 'tsdown';
 
 console.log("🚀 [1/4] Compiling Rust to WebAssembly...");
 // Compile in release mode, targeting the web
@@ -12,46 +12,27 @@ const base64Str = wasmBuffer.toString('base64');
 // Generate a dummy JS file for TypeScript imports
 fs.writeFileSync('./lib/wasm-b64.ts', `export const WASM_BASE64: string = "${base64Str}";\n`);
 
-console.log("🗜️  [3/4] Bundling CJS and ESM outputs using esbuild...");
-// Bundle the ESM version
-esbuild.buildSync({
-    entryPoints: ['./lib/index.ts'],
-    format: 'esm',
-    outfile: './dist/esm/index.js',
-    bundle: true,
-    minify: true,
-    external: ['node:buffer'] 
+console.log("🗜️  [3/4] Bundling CJS and ESM outputs using rolldown...");
+build({
+  entry: './lib/index.ts',
+  format: "esm",
+});
+build({
+  entry: './lib/index.ts',
+  format: "cjs",
+});
+build({
+  entry: './lib/index.ts',
+  format: "iife",
+  globalName: 'polar_codec',
+  platform: 'browser',
+  // minify: true,
+  define: { 'import.meta': "{/* import.meta */}" },
+  footer: { js: 'window.PolarCodec = polar_codec.PolarCodec;' }
 });
 
-// Bundle the CJS version (Node.js specific)
-esbuild.buildSync({
-    entryPoints: ['./lib/index.ts'],
-    format: 'cjs',
-    outfile: './dist/cjs/index.cjs',
-    bundle: true,
-    minify: true,
-    logOverride: { 'empty-import-meta': 'silent' }
-});
-
-esbuild.buildSync({
-    entryPoints: ['./lib/index.ts'],
-    format: 'iife',
-    globalName: 'polar_codec',
-    outfile: './dist/iife/index.js',
-    bundle: true,
-    minify: true,
-    logOverride: { 'empty-import-meta': 'silent' },
-    footer: { js: 'window.PolarCodec = polar_codec;' }
-});
-
-console.log("📝 [4/4] Generating TypeScript declaration files (.d.ts)...");
-execSync('pnpm run tsc', { stdio: 'inherit' });
-
-console.log("🧹 [5/5] Cleaning up unused internal type declarations...");
-const internalDtsPath = './dist/wasm-b64.d.ts';
-if (fs.existsSync(internalDtsPath)) {
-    fs.unlinkSync(internalDtsPath);
-}
+// console.log("📝 [4/4] Generating TypeScript declaration files (.d.ts)...");
+// execSync('pnpm run tsc', { stdio: 'inherit' });
 
 console.log("✅ Build complete! Outputs saved to the /dist directory.");
 

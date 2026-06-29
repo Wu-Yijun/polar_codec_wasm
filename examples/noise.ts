@@ -8,7 +8,7 @@
  */
 
 import { PolarCodec, Crc } from "polar_codec_wasm";
-import { to_llr, bits_array, normal_dist } from "./utils.ts";
+import { bits_array, normal_dist } from "./utils.ts";
 
 // ---------------------------------------------------------------------------
 // Configuration

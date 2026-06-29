@@ -25,17 +25,17 @@
     "node": ">=16.0.0"
   },
   "type": "module",
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/index.d.ts",
-  "unpkg": "./dist/iife/index.js",
-  "jsdelivr": "./dist/iife/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "unpkg": "./dist/index.iife.js",
+  "jsdelivr": "./dist/index.iife.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.cjs",
-      "default": "./dist/esm/index.js"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     }
   },
   "files": [
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.0.1",
-    "esbuild": "^0.28.0",
+    "tsdown": "^0.22.3",
     "typescript": "^6.0.3"
   }
 }

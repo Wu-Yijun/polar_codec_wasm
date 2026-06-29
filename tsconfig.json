@@ -15,6 +15,7 @@
   "include": [
     "lib/**/*",
     "examples/**/*",
-    "test/**/*"
+    "test/**/*",
+    "scripts/**/*"
   ]
 }
