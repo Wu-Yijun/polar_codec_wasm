@@ -1,6 +1,6 @@
 {
   "name": "polar_codec_wasm",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Aluria",
   "description": "Zero-dependency WebAssembly implementation of Polar Codes (FEC) for Node.js, browsers, and Deno, powered by Rust.",
   "keywords": [
