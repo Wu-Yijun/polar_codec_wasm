@@ -1,13 +1,21 @@
 {
   "name": "polar_codec_wasm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Aluria",
-  "description": "(Rust bindings) A Rust implementation of polar codes, a class of error-correcting codes that achieve the capacity of symmetric binary-input discrete memoryless channels.",
+  "description": "Zero-dependency WebAssembly implementation of Polar Codes (FEC) for Node.js, browsers, and Deno, powered by Rust.",
   "keywords": [
     "polar codes",
+    "fec",
+    "forward-error-correction",
+    "channel-coding",
     "error-correcting codes",
+    "5g",
+    "crc",
     "wasm",
+    "webassembly",
     "rust",
+    "typescript",
+    "zero-dependency",
     "browser",
     "node"
   ],
@@ -41,12 +49,11 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE-MIT",
-    "LICENSE-APACHE"
+    "LICENSE"
   ],
   "scripts": {
     "build": "node ./scripts/build.ts",
-    "examples": "node ./examples/basic.ts && node ./examples/parameters.ts && node ./examples/noise.ts && node ./examples/performanec.ts",
+    "examples": "node ./examples/basic.ts && node ./examples/parameters.ts && node ./examples/noise.ts && node ./examples/performance.ts",
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
