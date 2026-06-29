@@ -1,5 +1,5 @@
 {
-  "name": "polar_codec-wasm",
+  "name": "polar_codec_wasm",
   "version": "1.0.0",
   "author": "Aluria",
   "description": "(Rust bindings) A Rust implementation of polar codes, a class of error-correcting codes that achieve the capacity of symmetric binary-input discrete memoryless channels.",
@@ -23,13 +23,6 @@
   "sideEffects": false,
   "engines": {
     "node": ">=16.0.0"
-  },
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.5.2",
-      "onFail": "download"
-    }
   },
   "type": "module",
   "main": "./dist/cjs/index.cjs",

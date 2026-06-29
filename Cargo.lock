@@ -105,9 +105,9 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
 name = "polar_codec"
-version = "0.2.1"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d49ee7ffaf954cac6c133c4df798e3092d406afa41419c529c758f923c32703f"
+checksum = "dc23d53cdeafd343d0abf36a18edd8e79fc4ebae75ecb6aeb8f4f63eabf60ed1"
 dependencies = [
  "crc",
 ]

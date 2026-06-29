@@ -3,10 +3,11 @@ use std::fmt::Debug;
 use polar_codec::{IntoCrcEngine, polar_crc::CrcEngine};
 use wasm_bindgen::prelude::wasm_bindgen;
 
+#[allow(non_camel_case_types)]
 #[wasm_bindgen]
 pub enum Crc {
     None = 0,
-    UserDefined,
+    UserDefined = 1,
     CRC_3_GSM,
     CRC_3_ROHC,
     CRC_4_G_704,
@@ -155,18 +156,33 @@ pub struct Algorithm {
     /// read and after the optional reflection. It has the same endianness as the CRC such that its
     /// true image appears in the characters of the CRC.
     pub xorout: u128,
-    /// The contents of the register after initialising, reading the UTF-8 string `"123456789"` (as
-    /// 8-bit characters), optionally reflecting, and applying the final XOR.
-    pub check: u128,
-    /// The contents of the register after initialising, reading an error-free codeword and
-    /// optionally reflecting the register (if [`refout`](Algorithm::refout)=`true`), but not
-    /// applying the final XOR. This is mathematically equivalent to initialising the register with
-    /// the xorout parameter, reflecting it as described (if [`refout`](Algorithm::refout)=`true`),
-    /// reading as many zero bits as there are cells in the register, and reflecting the result (if
-    /// [`refin`](Algorithm::refin)=`true`). The residue of a crossed-endian model is calculated
-    /// assuming that the characters of the received CRC are specially reflected before submitting
-    /// the codeword.
-    pub residue: u128,
+    // /// The contents of the register after initialising, reading the UTF-8 string `"123456789"` (as
+    // /// 8-bit characters), optionally reflecting, and applying the final XOR.
+    // pub check: u128,
+    // /// The contents of the register after initialising, reading an error-free codeword and
+    // /// optionally reflecting the register (if [`refout`](Algorithm::refout)=`true`), but not
+    // /// applying the final XOR. This is mathematically equivalent to initialising the register with
+    // /// the xorout parameter, reflecting it as described (if [`refout`](Algorithm::refout)=`true`),
+    // /// reading as many zero bits as there are cells in the register, and reflecting the result (if
+    // /// [`refin`](Algorithm::refin)=`true`). The residue of a crossed-endian model is calculated
+    // /// assuming that the characters of the received CRC are specially reflected before submitting
+    // /// the codeword.
+    // pub residue: u128,
+}
+
+#[wasm_bindgen]
+impl Algorithm {
+    #[wasm_bindgen(constructor)]
+    pub fn new(width: u8, poly: u128, init: u128, refin: bool, refout: bool, xorout: u128) -> Self {
+        Self {
+            width,
+            poly,
+            init,
+            refin,
+            refout,
+            xorout,
+        }
+    }
 }
 
 impl Algorithm {
@@ -181,8 +197,9 @@ impl Algorithm {
             refin: self.refin,
             refout: self.refout,
             xorout: W::try_from(self.xorout).unwrap(),
-            check: W::try_from(self.check).unwrap(),
-            residue: W::try_from(self.residue).unwrap(),
+            check: W::try_from(0).unwrap(),
+            residue: W::try_from(0).unwrap(), // check: W::try_from(self.check).unwrap(),
+                                              // residue: W::try_from(self.residue).unwrap(),
         }))
     }
 }
@@ -203,7 +220,7 @@ impl IntoCrcEngine for Algorithm {
     }
 }
 
-fn to_crc(crc: Crc, algo: Option<Algorithm>) -> Option<CrcEngine> {
+pub fn to_crc(crc: Crc, algo: Option<Algorithm>) -> Option<CrcEngine> {
     match crc {
         Crc::None => None,
         Crc::UserDefined => algo.map(|a| a.into_engine()),
