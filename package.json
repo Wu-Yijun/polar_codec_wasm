@@ -1,0 +1,64 @@
+{
+  "name": "polar_codec-wasm",
+  "version": "1.0.0",
+  "author": "Aluria",
+  "description": "(Rust bindings) A Rust implementation of polar codes, a class of error-correcting codes that achieve the capacity of symmetric binary-input discrete memoryless channels.",
+  "keywords": [
+    "polar codes",
+    "error-correcting codes",
+    "wasm",
+    "rust",
+    "browser",
+    "node"
+  ],
+  "homepage": "https://github.com/Wu-Yijun/polar-codec-wasm#readme",
+  "bugs": {
+    "url": "https://github.com/Wu-Yijun/polar-codec-wasm/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wu-Yijun/polar-codec-wasm.git"
+  },
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.5.2",
+      "onFail": "download"
+    }
+  },
+  "type": "module",
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/iife/index.js",
+  "jsdelivr": "./dist/iife/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs",
+      "default": "./dist/esm/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE"
+  ],
+  "scripts": {
+    "build": "node ./scripts/build.ts",
+    "tsc": "tsc",
+    "prepublishOnly": "pnpm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "esbuild": "^0.28.0",
+    "typescript": "^6.0.3"
+  }
+}
