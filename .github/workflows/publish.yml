@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: whether to publish to npm
+        description: tick to publish to npm
         required: true
         type: boolean
         default: false
